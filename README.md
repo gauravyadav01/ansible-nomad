@@ -40,7 +40,7 @@ Including an example of how to use your role (for instance, with variables passe
 - hosts: nomad-master
   become: true
   roles:
-    - role: gaurav-nomad
+    - role: nomad
       nomad_config:
         server:
           enabled: true
@@ -52,7 +52,7 @@ Including an example of how to use your role (for instance, with variables passe
  - hosts: nomad-client
    become: true
    roles:
-     - role: gaurav-nomad
+     - role: nomad
        nomad_config:
          client:
            enabled: true
