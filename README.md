@@ -1,7 +1,10 @@
 Role Name
 =========
 
-Ansible role to install Nomad
+Ansible role to install Nomad.
+Currently this works on RedHat based linux systems.  Tested platforms are:
+
+* Centos 7
 
 Requirements
 ------------
