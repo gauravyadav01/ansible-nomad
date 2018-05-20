@@ -25,6 +25,8 @@ nomad_use_systemd: true
 nomad_config: {}
 ```
 
+Add whatever you want to add Nomad config in nomad_config: {}
+
 Example Playbook
 ----------------
 
