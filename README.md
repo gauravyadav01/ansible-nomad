@@ -11,6 +11,7 @@ Ansible > 2.0
 Role Variables
 --------------
 
+```
 nomad_version: "0.8.3"
 nomad_download_url: ""
 nomad_home: "/usr/local/nomad"
@@ -22,13 +23,14 @@ nomad_manage_service: true
 nomad_use_systemd: true
 
 nomad_config: {}
-
+```
 
 Example Playbook
 ----------------
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
+```
 ---
 - hosts: nomad-master
   become: true
@@ -50,7 +52,7 @@ Including an example of how to use your role (for instance, with variables passe
          client:
            enabled: true
             
-
+```
 License
 -------
 
