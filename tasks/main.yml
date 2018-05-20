@@ -1,0 +1,109 @@
+---
+# tasks file for gaurav.nomad
+- name: add epel repo
+  yum_repository:
+    name: epel
+    description: EPEL YUM repo
+    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+    gpgcheck: no
+  when: nomad_epel_repo
+
+- name: install deps (RHEL)
+  yum:
+    pkg: "{{item}}"
+    state: installed
+  with_items:
+    - unzip
+  when: ansible_os_family == "RedHat"
+
+- name: Add Nomad group
+  group:
+    name: "{{ nomad_group }}"
+    state: present
+    system: yes
+  when: nomad_manage_group | bool
+
+- name: Add Nomad 
+  user:
+    name: "{{ nomad_user }}"
+    state: present
+    group: "{{ nomad_group }}"
+    system: yes
+  when: nomad_manage_user | bool
+
+- name: check archive stat
+  stat:
+    path: "{{ nomad_download_dir }}/nomad_pkg"
+  register: nomad_archive_stat
+
+- name: download nomad
+  get_url:
+    url: "{{nomad_download_url}}"
+    dest: "{{nomad_download_dir}}"
+    url_username: "{{ nomad_download_username }}"
+    url_password: "{{ nomad_download_password }}"
+  register: nomad_was_downloaded
+  when: nomad_archive_stat.stat.exists == False
+
+- name: create nomad directory
+  file:
+    state: directory
+    path: "{{ item }}"
+    owner: "{{nomad_user}}"
+    group: "{{nomad_group}}"
+    mode: 0755
+  with_items:
+    - "{{ nomad_home }}"
+    - "{{ nomad_home }}/{{ nomad_version }}"
+    - "{{ nomad_data_dir }}"
+    - "{{ nomad_config_dir }}"
+
+- name: find files in "{{ nomad_config_dir }}"
+  shell: ls -1 "{{ nomad_config_dir }}"
+  register: contents
+
+- name: delete all unmanaged files
+  file:
+    path: "{{ nomad_config_dir }}/{{ item }}"
+    state: absent
+  with_items: "{{ contents.stdout_lines | difference(nomad_managed_files) }}"
+
+- name: check binary stat
+  stat:
+    path: "{{ nomad_home }}/{{ nomad_version }}/nomad"
+  register: nomad_binary_stat
+
+- name: copy and unpack
+  unarchive:
+    src: "{{ nomad_download_dir }}/{{ nomad_pkg }}"
+    dest: "{{ nomad_home }}/{{ nomad_version }}"
+    copy: no
+  when: (nomad_was_downloaded|changed) or (nomad_binary_stat.stat.exists == False)
+
+- name: nomad link
+  file:
+    src: "{{ nomad_home }}/{{ nomad_version }}/nomad"
+    dest: /usr/local/bin/nomad
+    state: link
+  notify:
+    - restart nomad
+
+- name: copy config
+  template:
+    src: "{{ nomad_config_template }}"
+    dest: "{{ nomad_config_dir }}/config.json"
+  notify:
+    - restart nomad
+
+- name: copy nomad systemd script
+  template:
+    src: "{{ nomad_systemd_template }}"
+    dest: "/etc/systemd/system/nomad.service"
+    owner: root
+    group: root
+    mode: 0644
+  when: nomad_use_systemd
+  notify:
+    - reload systemd
+    - restart nomad
+

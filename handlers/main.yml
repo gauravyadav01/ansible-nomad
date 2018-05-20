@@ -1,0 +1,9 @@
+---
+# handlers file for gaurav.nomad
+- name: reload systemd
+  become: yes
+  command: systemctl daemon-reload
+
+- name: restart nomad
+  action: service name=nomad state=restarted enabled=yes
+  when: nomad_manage_service

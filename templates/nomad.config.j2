@@ -1,0 +1,11 @@
+{{ 
+  {
+    'bind_addr': '0.0.0.0',
+    'data_dir': nomad_data_dir,
+    'client': { 
+      'enabled': true
+    }
+  } | combine(nomad_config) 
+    | to_nice_json(indent=2)
+}}
+
